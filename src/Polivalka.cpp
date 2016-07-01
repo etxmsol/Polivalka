@@ -16,6 +16,7 @@ static const char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednes
 
 const uint16_t HYGROMETER_PIN = 8;			// moisture input (digital)
 const uint16_t HYGROMETER_ANALOG_PIN = 54;	//
+const uint16_t THRESHOLD_DRYNESS = 120;
 const uint16_t MAGNET_VALVE_PIN = 9;		// valve control output
 static const uint8_t ALARM_LED_PIN = 3;
 
@@ -160,7 +161,7 @@ void loop()
 
 	char buf[128];
 
-	if(consumedToday < dailyWaterLimit && digitalRead(HYGROMETER_PIN) == HIGH)
+	if(consumedToday < dailyWaterLimit && analogRead(HYGROMETER_ANALOG_PIN) >= THRESHOLD_DRYNESS)
 	{
 
 		sprintf(buf, "%d%02d%02d %02d:%02d:%02d VALVE OPEN", now.year(), now.month(), now.day(), now.hour(),
