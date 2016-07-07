@@ -161,18 +161,29 @@ void loop()
 
 	char buf[128];
 
-	if(consumedToday < dailyWaterLimit && analogRead(HYGROMETER_ANALOG_PIN) >= THRESHOLD_DRYNESS)
+	int dryness = 0;
+
+	for(int i = 0; i < 5; i++)
+	{
+		dryness += analogRead(HYGROMETER_ANALOG_PIN);
+		delay(1000);
+	}
+
+	dryness /= 5;
+
+	sprintf(buf, "%d%02d%02d %02d:%02d:%02d DRYNESS = %d", now.year(), now.month(), now.day(), now.hour(),
+			now.minute(), now.second(), dryness);
+
+	log(buf);
+
+	Serial1.println( buf );
+
+
+	if(consumedToday < dailyWaterLimit && dryness >= THRESHOLD_DRYNESS)
 	{
 
 		sprintf(buf, "%d%02d%02d %02d:%02d:%02d VALVE OPEN", now.year(), now.month(), now.day(), now.hour(),
 				now.minute(), now.second());
-
-		log(buf);
-
-		Serial1.println( buf );
-
-		sprintf(buf, "%d%02d%02d %02d:%02d:%02d SENSOR = %d", now.year(), now.month(), now.day(), now.hour(),
-				now.minute(), now.second(), analogRead(HYGROMETER_ANALOG_PIN));
 
 		log(buf);
 
@@ -183,8 +194,6 @@ void loop()
 		digitalWrite(MAGNET_VALVE_PIN, LOW);
 
 		consumedToday += 3;
-
-		now = rtc.now();
 
 		sprintf(buf, "%d%02d%02d %02d:%02d:%02d VALVE SHUT. Water time consumed: %d sec", now.year(), now.month(), now.day(), now.hour(),
 				now.minute(), now.second(), consumedToday);
@@ -199,14 +208,6 @@ void loop()
 			Serial1.print("Daily limit consumed. Resting till tomorrow");
 		}
 	}
-	delay(3600000L);	// every hour leave the analog read out
-	now = rtc.now();
-
-	sprintf(buf, "%d%02d%02d %02d:%02d:%02d RESTING. SENSOR = %d", now.year(), now.month(), now.day(), now.hour(),
-			now.minute(), now.second(), analogRead(HYGROMETER_ANALOG_PIN));
-
-	log(buf);
-
-	Serial1.println( buf );
+	delay(3600000L);	// sleep for one hour
 
 }
